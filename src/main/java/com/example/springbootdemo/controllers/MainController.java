@@ -1,9 +1,8 @@
 package com.example.springbootdemo.controllers;
 
-import com.example.springbootdemo.dao.UserDAO;
+import com.example.springbootdemo.models.dao.UserDAO;
 import com.example.springbootdemo.models.User;
 import lombok.AllArgsConstructor;
-import org.apache.catalina.Manager;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,6 +44,21 @@ public class MainController {
         u.setName(user.getName());
         userDAO.save(u);
         return u;
+    }
+
+    @GetMapping("/users/name/{nameValue}")
+    public List<User> usersByName(@PathVariable ("nameValue") String nameValue){
+
+//        List<User> userByName = userDAO.getUserByName(nameValue);
+//        return userByName;
+
+        return userDAO.findByName(nameValue);
+
+    }
+
+    @DeleteMapping("/users/all/{name}")
+    public void deleteAllByName(@PathVariable String name) {
+        userDAO.deleteAllByName(name);
     }
 
 }

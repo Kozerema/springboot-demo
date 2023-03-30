@@ -1,53 +1,50 @@
 package com.example.springbootdemo.controllers;
 
+import com.example.springbootdemo.dao.UserDAO;
 import com.example.springbootdemo.models.User;
+import lombok.AllArgsConstructor;
 import org.apache.catalina.Manager;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @RestController
+@AllArgsConstructor
 public class MainController {
 
-    private List<User> users = new ArrayList<>();
+    private UserDAO userDAO;
+    @PostMapping("/users")
+    public void save(@RequestBody User user){
 
-    public MainController() {
-        users.add(new User(1, "vika"));
-        users.add(new User(2, "vik"));
-        users.add(new User(3, "vi"));
-        users.add(new User(4, "v"));
-    }
+        userDAO.save(user);
 
-    @GetMapping("/")
-    public String homePage() {
-        return "hello";
     }
 
     @GetMapping("/users")
-    public List<User> getUsers() {
+    public List<User> getUsers(){
 
-        return users;
+        List<User> all = userDAO.findAll();
+        return all;
     }
-
     @GetMapping("/users/{id}")
-    public User getUser(@PathVariable("id") int id) {
-        List<User> collect = users
-                .stream()
-                .filter(user -> user.getId() == id)
-                .collect(Collectors.toList());
+    public User getUser(@PathVariable("id") int id){
+        User user = userDAO.findById(id).get();
+        return user;
+    }
+    @DeleteMapping("users/{id}")
+    public List<User> deleteUsers(@PathVariable("id") int id){
+        userDAO.deleteById(id);
+        return userDAO.findAll();
+    }
+    @PatchMapping("/users/{id}")
+    public User updateUser(@PathVariable("id") int id,@RequestBody User user){
 
-        return collect.get(0);
+//        User u = userDAO.findById(id).orElse(new User()); якщо немає об'єкта з таким id, створює його
+        User u = userDAO.findById(id).get();
+        u.setName(user.getName());
+        userDAO.save(u);
+        return u;
     }
 
-    @PostMapping("/users")
-    public List<User> saveUser(@RequestBody User user) {
-        System.out.println("hello");
-        users.add(user);
-        return users;
-    }
-    //put замінити об'єкт на інший
-    //patch оновити
-    //delete
 }

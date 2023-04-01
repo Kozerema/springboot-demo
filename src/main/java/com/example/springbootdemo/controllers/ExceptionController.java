@@ -12,7 +12,7 @@ public class ExceptionController {
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("asd","qwe");
-        ResponseEntity<String> response = new ResponseEntity<>(e.getFieldError().getDefaultMessage(), httpHeaders, HttpStatus.OK);
+        ResponseEntity<String> response = new ResponseEntity<>(e.getFieldError().getDefaultMessage(), httpHeaders, HttpStatus.BAD_REQUEST);
 
         return response;
     }

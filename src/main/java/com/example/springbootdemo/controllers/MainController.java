@@ -2,8 +2,14 @@ package com.example.springbootdemo.controllers;
 
 import com.example.springbootdemo.dao.CarDAO;
 import com.example.springbootdemo.models.Car;
+import com.example.springbootdemo.views.Views;
+import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.JoinColumn;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -16,37 +22,45 @@ public class MainController {
     private CarDAO carDAO;
 
     @GetMapping("")
-    public List<Car> getCars() {
+    @JsonView(value = Views.Level3.class)
+    public ResponseEntity< List<Car>> getCars() {
         Sort by = Sort.by(Sort.Order.desc("id"));
-        return carDAO.findAll(by);
+
+        return new ResponseEntity<>( carDAO.findAll(by), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public Car getOneCar(@PathVariable int id) {
-        Car car = carDAO.findById(id).get();
-        return car;
+    @JsonView(value = Views.Level1.class)
+    public ResponseEntity<Car> getOneCar(@PathVariable int id) {
+
+        return new ResponseEntity<>(carDAO.findById(id).get(), HttpStatus.OK);
     }
 
     @PostMapping("")
-    public void save(@RequestBody Car car) {
+    @ResponseStatus(HttpStatus.OK)
+    public void save( @RequestBody @Valid  Car car) {
         carDAO.save(car);
     }
 
     @DeleteMapping("/delete/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public void deleteById(@PathVariable int id) {
         carDAO.deleteById(id);
     }
 
     @GetMapping("/power/{power}")
-    public List<Car> findCarByPower(@PathVariable int power) {
-        return carDAO.findCarByPower(power);
+    @JsonView(value = Views.Level2.class)
+    public ResponseEntity<List<Car>> findCarByPower(@PathVariable int power) {
+
+        return new ResponseEntity<>(carDAO.findCarByPower(power),HttpStatus.OK);
     }
 
     @GetMapping("producer/{producer}")
-    public List<Car> findCarByProducer(@PathVariable String producer){
+    @JsonView(value = Views.Level2.class)
+    public ResponseEntity<List<Car>> findCarByProducer(@PathVariable String producer){
 //        return carDAO.findCarByProducer(producer);
 
-        return carDAO.getCarByProducer(producer);
+        return new ResponseEntity<>(carDAO.getCarByProducer(producer),HttpStatus.OK);
 
     }
 

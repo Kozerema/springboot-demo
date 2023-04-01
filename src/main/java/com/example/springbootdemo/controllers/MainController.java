@@ -1,6 +1,6 @@
 package com.example.springbootdemo.controllers;
 
-import com.example.springbootdemo.models.dao.UserDAO;
+import com.example.springbootdemo.dao.UserDAO;
 import com.example.springbootdemo.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;

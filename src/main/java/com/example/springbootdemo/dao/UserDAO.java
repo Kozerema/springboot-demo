@@ -1,4 +1,4 @@
-package com.example.springbootdemo.models.dao;
+package com.example.springbootdemo.dao;
 
 import com.example.springbootdemo.models.User;
 import jakarta.transaction.Transactional;

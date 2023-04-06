@@ -19,16 +19,16 @@ public class UserService {
     private UserDAO userDAO;
     private MailService mailService;
 
-    public void save(User user){
-        if(user==null) {
+    public void save(User user) {
+        if (user == null) {
             throw new RuntimeException();
         }
-            userDAO.save(user);
+        userDAO.save(user);
 //        mailService.sendEmail(user);
 
     }
 
-    public ResponseEntity<List<User>> findAllWithSpecifications(Specification<User> criteria){
+    public ResponseEntity<List<User>> findAllWithSpecifications(Specification<User> criteria) {
 
         List<User> all = userDAO.findAll(criteria);
 
@@ -36,9 +36,9 @@ public class UserService {
 
     }
 
-    public List<User> findAll(){
+    public List<User> findAll() {
 
-       return userDAO.findAll();
+        return userDAO.findAll();
 
     }
 
@@ -51,8 +51,8 @@ public class UserService {
         return userDTO;
     }
 
-    public List<User> deleteUserById (int id){
-        if(id>0) userDAO.deleteById(id);
+    public List<User> deleteUserById(int id) {
+        if (id > 0) userDAO.deleteById(id);
         return userDAO.findAll();
     }
 
@@ -63,14 +63,15 @@ public class UserService {
             user1.setName(user.getName());
             userDAO.save(user1);
         }
+
         return user1;
     }
 
-    public List<User> userByName(String nameValue){
+    public List<User> userByName(String nameValue) {
         return userDAO.findByName(nameValue);
     }
 
-    public void deleteAllByName(String name){
+    public void deleteAllByName(String name) {
         userDAO.deleteAllByName(name);
     }
 

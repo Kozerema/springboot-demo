@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class MailService {
+
     private JavaMailSender javaMailSender;
 
     public void sendEmail(User user) {
@@ -30,6 +31,7 @@ public class MailService {
 
 
     }
-
-
 }
+
+
+

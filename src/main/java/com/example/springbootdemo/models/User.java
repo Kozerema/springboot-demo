@@ -37,6 +37,8 @@ public class User {
     @JsonView(value = {Views.Client.class,Views.Admin.class})
     private int age;
 
+    private String avatar;
+
     public User(String name, int age) {
         this.name = name;
         this.age = age;

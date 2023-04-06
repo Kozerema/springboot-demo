@@ -1,19 +1,15 @@
 package com.example.springbootdemo.controllers;
 
-import ch.qos.logback.core.net.server.Client;
+
 import com.example.springbootdemo.dao.UserDAO;
 import com.example.springbootdemo.models.User;
 import com.example.springbootdemo.models.UserDTO;
 import com.example.springbootdemo.queryFilters.UserSpecifications;
+import com.example.springbootdemo.services.UserService;
 import com.example.springbootdemo.views.Views;
 import com.fasterxml.jackson.annotation.JsonView;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,47 +23,52 @@ import java.util.List;
 public class MainController {
 
     private UserDAO userDAO;
+    private UserService userService;
+
     @PostMapping("")
     @ResponseStatus(HttpStatus.OK)
     public void save(@RequestBody @Valid User user){
+        userService.save(user);
 
-        userDAO.save(user);
+    }
 
+
+    @GetMapping("/specifications")
+    @JsonView(value = Views.Client.class)
+    public ResponseEntity< List<User>> getUsersBySpecifications(){
+
+        return userService.findAllWithSpecifications(UserSpecifications.byId(1)
+                .and(UserSpecifications.byAge(32))
+                .and(UserSpecifications.byName("abrk")));
     }
 
     @GetMapping("")
     @JsonView(value = Views.Client.class)
-    public ResponseEntity< List<User>> getUsers(){
+    public List<User> getUsers(){
 
-        List<User> all = userDAO.findAll(UserSpecifications.byId(9)
-                .and(UserSpecifications.byAge(15))
-                .and(UserSpecifications.byName("abrikos"))
-        );
-
-        return new ResponseEntity<>(all, HttpStatus.OK);
+        return userService.findAll();
     }
+
+
 
 
 
     @GetMapping("/{id}")
     public UserDTO getUser(@PathVariable("id") int id){
-        User user = userDAO.findById(id).get();
-        UserDTO userDTO= new UserDTO(user);
-        return userDTO ;
+      return userService.getUser(id);
+
     }
     @DeleteMapping("/{id}")
-    public List<User> deleteUsers(@PathVariable("id") int id){
-        userDAO.deleteById(id);
-        return userDAO.findAll();
+    public List<User> deleteUser(@PathVariable("id") int id){
+
+        return userService.deleteUserById(id);
     }
     @PatchMapping("/{id}")
     public User updateUser(@PathVariable("id") int id,@RequestBody User user){
 
 //        User u = userDAO.findById(id).orElse(new User()); якщо немає об'єкта з таким id, створює його
-        User u = userDAO.findById(id).get();
-        u.setName(user.getName());
-        userDAO.save(u);
-        return u;
+
+        return userService.updateUser(id,user);
     }
 
     @GetMapping("/name/{nameValue}")
@@ -77,13 +78,13 @@ public class MainController {
 //        List<User> userByName = userDAO.getUserByName(nameValue);
 //        return userByName;
 
-        return userDAO.findByName(nameValue);
+        return userService.userByName(nameValue);
 
     }
 
     @DeleteMapping("/all/{name}")
     public void deleteAllByName(@PathVariable String name) {
-        userDAO.deleteAllByName(name);
+       userService.deleteAllByName(name);
     }
 
 }

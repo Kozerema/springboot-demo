@@ -1,129 +1,95 @@
 package com.example.springbootdemo.controllers;
 
-
-import com.example.springbootdemo.dao.UserDAO;
-import com.example.springbootdemo.dao.mongo.ClientMongoDAO;
-import com.example.springbootdemo.models.User;
-import com.example.springbootdemo.models.UserDTO;
-import com.example.springbootdemo.models.mongoModels.Client;
-import com.example.springbootdemo.queryFilters.UserSpecifications;
-import com.example.springbootdemo.services.UserService;
-import com.example.springbootdemo.views.Views;
-import com.fasterxml.jackson.annotation.JsonView;
-import jakarta.validation.Valid;
+import com.example.springbootdemo.dao.ClientUserDAO;
+import com.example.springbootdemo.models.ClientUser;
+import com.example.springbootdemo.models.dto.ClientUserDTO;
+import com.sun.xml.bind.v2.TODO;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/users")
+
 public class MainController {
 
-    private UserDAO userDAO;
-    private UserService userService;
-    private ClientMongoDAO clientMongoDAO;
+    private ClientUserDAO clientUserDAO;
+    private PasswordEncoder passwordEncoder;
+    private AuthenticationManager authenticationManager;
 
-    @PostMapping("")
-    @ResponseStatus(HttpStatus.OK)
-    public void save(@RequestBody @Valid User user) {
-        userService.save(user);
-        clientMongoDAO.save(new Client(user.getName(),user.getAge()));
-    }
+    @PostMapping("clients/save")
+    public void saveClient(@RequestBody ClientUserDTO clientUserDTO) {
 
-
-    @GetMapping("/specifications")
-    @JsonView(value = Views.Client.class)
-    public ResponseEntity<List<User>> getUsersBySpecifications() {
-
-        return userService.findAllWithSpecifications(UserSpecifications.byId(1)
-                .and(UserSpecifications.byAge(32))
-                .and(UserSpecifications.byName("abrk")));
-    }
-
-    @GetMapping("")
-    @JsonView(value = Views.Client.class)
-    public List<User> getUsers() {
-
-        return userService.findAll();
-    }
-
-
-    @GetMapping("/{id}")
-    public UserDTO getUser(@PathVariable("id") int id) {
-        return userService.getUser(id);
-
-    }
-
-    @DeleteMapping("/{id}")
-    public List<User> deleteUser(@PathVariable("id") int id) {
-
-        return userService.deleteUserById(id);
-    }
-
-    @PatchMapping("/{id}")
-    public User updateUser(@PathVariable("id") int id, @RequestBody User user) {
-
-//        User u = userDAO.findById(id).orElse(new User()); якщо немає об'єкта з таким id, створює його
-
-        return userService.updateUser(id, user);
-    }
-
-    @GetMapping("/name/{nameValue}")
-    @JsonView(value = Views.Admin.class)
-    public List<User> usersByName(@PathVariable("nameValue") String nameValue) {
-
-//        List<User> userByName = userDAO.getUserByName(nameValue);
-//        return userByName;
-
-        return userService.userByName(nameValue);
-
-    }
-
-    @DeleteMapping("/all/{name}")
-    public void deleteAllByName(@PathVariable String name) {
-        userService.deleteAllByName(name);
-    }
-
-//    @PostMapping("/saveWithAvatar")
-//    public void saveWithAvatar(@RequestParam String name,
-//                               @RequestParam int age,
-//                               @RequestParam MultipartFile avatar) throws IOException {
+        //don`t working
 //
-//        User user = new User(name, age);
-//        String originalFilename = avatar.getOriginalFilename();
-//        user.setAvatar("/photo" + originalFilename);
-//        String path = System.getProperty("user.home") + File.separator + "img" + File.separator + originalFilename;
-//        File file = new File(path);
-//        avatar.transferTo(file);
-//        userService.save(user);
-//
-//
-//    }
-//}
+//        clientUserDAO.save(ClientUser.builder()
+//                .email(clientUserDTO.getUsername())
+//                .password(passwordEncoder.encode(clientUserDTO.getPassword()))
+//                .build());
 
-    @PostMapping("/saveWithAvatar")
-    public void saveWithAvatar(
-            @RequestParam String name,
-            @RequestParam int age,
-            @RequestParam MultipartFile avatar
-    ) throws IOException {
 
-        User user = new User(name, age);
-        String originalFilename = avatar.getOriginalFilename();
-        user.setAvatar("/photo/" + originalFilename);
-//        String path = System.getProperty("user.home") + File.separator + "images" + File.separator + originalFilename;
-        String path = "D:"+File.separator+"Document" + File.separator + "images" + File.separator + originalFilename;
-        File file = new File(path);
-        avatar.transferTo(file);
-        userService.save(user);
+        ClientUser clientUser = new ClientUser();
+        clientUser.setEmail(clientUserDTO.getUsername());
+        clientUser.setPassword(passwordEncoder.encode(clientUserDTO.getPassword()));
+
+
+        clientUserDAO.save(clientUser);
+
+    }
+    @PostMapping("clients/login")
+    public ResponseEntity<String >login(@RequestBody ClientUserDTO clientUserDTO){
+
+        System.out.println(clientUserDTO);
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                clientUserDTO.getUsername(), clientUserDTO.getPassword()
+        );
+        System.out.println(usernamePasswordAuthenticationToken);
+
+        Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        if(authenticate!=null){
+            String jwtToken = Jwts.builder()
+                    .setSubject(authenticate.getName()) ///username-kokos
+                    .signWith(SignatureAlgorithm.HS512, "okten".getBytes(StandardCharsets.UTF_8))
+                    .compact();
+            System.out.println(jwtToken);
+
+
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add("Authorization","Bearer "+jwtToken);
+            return new ResponseEntity<>("you are logged in",httpHeaders, HttpStatus.OK);
+
+        }
+        return new ResponseEntity<>("bad credentials", HttpStatus.FORBIDDEN);
     }
 
+    // make a View
+    @GetMapping("clients/all")
+    public String getAllClientsWihtoutSensetive(){
+
+        return clientUserDAO
+                .findAll()
+                .stream()
+                .map(clientUser -> clientUser.getEmail())
+                .collect(Collectors.toList()).toString();
+    }
+
+    @GetMapping("admin/all")
+    public List<ClientUser> getAll(){
+
+        return clientUserDAO.findAll();
+    }
 }

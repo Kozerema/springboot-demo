@@ -3,6 +3,7 @@ package com.example.springbootdemo.controllers;
 import com.example.springbootdemo.dao.ClientUserDAO;
 import com.example.springbootdemo.models.ClientUser;
 import com.example.springbootdemo.models.dto.ClientUserDTO;
+import com.example.springbootdemo.services.ClientUserService;
 import com.sun.xml.bind.v2.TODO;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -29,7 +30,7 @@ public class MainController {
 
     private ClientUserDAO clientUserDAO;
     private PasswordEncoder passwordEncoder;
-    private AuthenticationManager authenticationManager;
+    private ClientUserService clientUserService;
 
     @PostMapping("clients/save")
     public void saveClient(@RequestBody ClientUserDTO clientUserDTO) {
@@ -53,27 +54,8 @@ public class MainController {
     @PostMapping("clients/login")
     public ResponseEntity<String >login(@RequestBody ClientUserDTO clientUserDTO){
 
-        System.out.println(clientUserDTO);
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                clientUserDTO.getUsername(), clientUserDTO.getPassword()
-        );
-        System.out.println(usernamePasswordAuthenticationToken);
+        return clientUserService.login(clientUserDTO);
 
-        Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        if(authenticate!=null){
-            String jwtToken = Jwts.builder()
-                    .setSubject(authenticate.getName()) ///username-kokos
-                    .signWith(SignatureAlgorithm.HS512, "okten".getBytes(StandardCharsets.UTF_8))
-                    .compact();
-            System.out.println(jwtToken);
-
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("Authorization","Bearer "+jwtToken);
-            return new ResponseEntity<>("you are logged in",httpHeaders, HttpStatus.OK);
-
-        }
-        return new ResponseEntity<>("bad credentials", HttpStatus.FORBIDDEN);
     }
 
     // make a View
